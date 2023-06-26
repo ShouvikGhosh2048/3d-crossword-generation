@@ -1,11 +1,13 @@
 import os
 import openai
 import random
-from flask import Flask, request
+from flask import Flask, request, send_from_directory
 import re
 import json
+from flask_cors import CORS
 
 # https://stackoverflow.com/a/62376955
+# https://towardsdatascience.com/build-deploy-a-react-flask-app-47a89a5d17d9
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -40,9 +42,10 @@ def word_letter_position(index, start, direction):
         letter_position = (start[0], start[1], start[2] + index)
     return letter_position
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='')
+CORS(app)
 
-@app.route("/")
+@app.route("/api")
 def generate_crossword():
     theme = request.args.get('theme', '')
     if theme == '':
@@ -57,6 +60,7 @@ def generate_crossword():
             return { "error": "No words have been given and noNewWords is true." }, 400
         for word in words:
             assert type(word["word"]) == str and len(word["word"]) > 0
+            word["word"] = word["word"].upper()
             for letter in word["word"]:
                 assert ord('A') <= ord(letter) <= ord('Z')
             assert not "description" in word or type(word["description"]) == str and len(word["description"]) > 0
@@ -123,6 +127,9 @@ def generate_crossword():
             description = words_and_descriptions[i+1]
             if not word in descriptions:
                 descriptions[word] = description
+
+    if len(descriptions) == 0:
+        return { "error": "Could not generate the crossword." }, 500
 
     words = [word for word in descriptions]
     crossword = [(words[0], (0, 0, 0), "X")]
@@ -218,3 +225,7 @@ def generate_crossword():
             "description": descriptions[word]
         } for (word, start, direction) in crossword]
     }
+
+@app.route("/")
+def home():
+    return send_from_directory('static', 'index.html')
