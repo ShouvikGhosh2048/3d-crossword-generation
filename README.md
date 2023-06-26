@@ -28,5 +28,7 @@ You can `GET` the route with the following query parameters:
   - `description` (optional): The description of the word. If not provided, the description will be generated. Must be non-empty if provided.
 - `noNewWords`: If present in the URL, no new words are generated. (This parameter doesn't require any value.)
 
+The route returns a JSON object with a crossword (or an error if the server was unable to generate a crossword).
+
 ## Idea
 The project idea came from [Saham](https://www.linkedin.com/in/saham-sil-943112277/).
